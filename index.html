@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roll and Tell Tour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: one step at a time. Each app: a tour of its screens one by one, then all screens with the die below, then the next app. Single light theme for screen sharing. */
+  --bg:#ECEEF2;
+  --surface:#FFFFFF;
+  --ink:#1B1F2A;
+  --muted:#5A6172;
+  --line:#D6DAE2;
+  --accent:#4B3FC7;
+  --font-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --pos:#1F8A5B; --neg:#B4435C; --idea:#4B3FC7;
+  --c:#8A90A0;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.45;display:flex;flex-direction:column}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--surface);flex-wrap:wrap}
+.crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.crumb{padding:5px 12px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.crumb.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.crumb.done{color:var(--ink)}
+.brand{font-family:var(--font-display);font-weight:700;font-size:18px}
+.chipbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;cursor:pointer;font-weight:500;font-size:14px}
+.chipbtn[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+main{flex:1;min-height:0;display:flex;flex-direction:column}
+.view{display:none;flex:1;min-height:0;flex-direction:column;align-items:center;padding:20px 24px 24px;gap:16px}
+.view.on{display:flex}
+h1,h2{font-family:var(--font-display);font-weight:700;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:40px}
+h2{font-size:28px;display:flex;align-items:center;gap:10px}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--c);flex:none}
+.lead{color:var(--muted);max-width:60ch;text-align:center;margin:0}
+.primary{background:var(--ink);color:#fff;border:0;border-radius:14px;padding:14px 22px;font-weight:600;cursor:pointer;font-size:16px;display:inline-flex;align-items:center;gap:10px}
+.secondary{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 20px;font-weight:600;cursor:pointer}
+.primary:disabled,.secondary:disabled{opacity:.35;cursor:default}
+
+/* start */
+#start{justify-content:center;text-align:center;gap:22px}
+.order{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.order button{min-width:240px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:18px 20px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.order button strong{font-family:var(--font-display);font-size:20px}
+.order button span{color:var(--muted);font-size:14px}
+.order button:hover{border-color:var(--ink)}
+
+/* tour */
+.tourhead{width:100%;max-width:1100px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.count{font-variant-numeric:tabular-nums;font-weight:600;color:var(--muted)}
+.stage{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;gap:24px}
+.bigphone{height:100%;max-height:820px;aspect-ratio:9/19.5;background:#0F1117;border-radius:40px;padding:10px;box-shadow:0 14px 40px rgba(27,31,42,.22);flex:none;max-width:calc(100vw - 180px)}
+.bigphone img{width:100%;height:100%;object-fit:contain;border-radius:31px;background:#fff;display:block}
+.arrow{width:56px;height:56px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center;flex:none}
+.arrow:disabled{opacity:.3;cursor:default}
+.prompt{font-family:var(--font-display);font-size:22px;font-weight:500;margin:0;text-align:center}
+.pips{display:flex;gap:6px}
+.pips i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.pips i.on{background:var(--c)}
+.tourfoot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+
+/* overview + die */
+#overview{overflow-y:auto}
+.grid{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;max-width:1300px}
+.thumb{width:118px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.thumb button{aspect-ratio:9/19.5;width:100%;background:#0F1117;border-radius:18px;padding:5px;border:0;cursor:zoom-in;box-shadow:0 4px 12px rgba(27,31,42,.14)}
+.thumb img{width:100%;height:100%;object-fit:contain;border-radius:14px;background:#fff;display:block}
+.thumb span{font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.diezone{width:100%;max-width:880px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px 24px}
+.diecol{display:flex;flex-direction:column;align-items:center;gap:12px}
+.scene{width:120px;height:120px;perspective:600px;border:0;background:none;padding:0;cursor:pointer;border-radius:20px}
+.cube{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 1.15s cubic-bezier(.2,.7,.15,1)}
+.face{position:absolute;inset:0;background:#fff;border:2px solid var(--ink);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;backface-visibility:hidden;box-shadow:inset 0 -6px 0 rgba(27,31,42,.06)}
+.face svg{width:52px;height:52px}
+.face span{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.f-front{transform:rotateY(0deg) translateZ(60px)}
+.f-back{transform:rotateY(180deg) translateZ(60px)}
+.f-right{transform:rotateY(90deg) translateZ(60px)}
+.f-left{transform:rotateY(-90deg) translateZ(60px)}
+.f-top{transform:rotateX(90deg) translateZ(60px)}
+.f-bottom{transform:rotateX(-90deg) translateZ(60px)}
+.rollbtn{background:var(--ink);color:#fff;border:0;border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer}
+.card{border-left:6px solid var(--fc,var(--line));padding:4px 0 4px 18px;display:flex;flex-direction:column;gap:10px}
+.tag{align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:999px;color:#fff;background:var(--tc,var(--muted))}
+.question{font-family:var(--font-display);font-weight:500;font-size:26px;line-height:1.2;margin:0;text-wrap:balance}
+.card.idle .question{color:var(--muted)}
+.ladder{margin:0;padding-top:10px;border-top:1px dashed var(--line)}
+.ladder p{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.ladder ol{margin:0;padding-left:20px;display:grid;gap:2px;font-size:15px}
+
+/* end */
+#end{justify-content:center;text-align:center}
+
+/* zoom */
+.zoom{position:fixed;inset:0;background:rgba(15,17,23,.84);display:none;align-items:center;justify-content:center;gap:16px;padding:24px;z-index:10}
+.zoom.open{display:flex}
+.zoom img{max-height:92%;max-width:min(80vw,520px);border-radius:24px;background:#fff}
+.zoom .arrow{border:0;background:rgba(255,255,255,.92)}
+.zoom .close{position:absolute;top:18px;right:18px}
+.zoom .cap{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#fff;font-weight:600;font-variant-numeric:tabular-nums}
+
+@media (max-width:700px){
+  .diezone{grid-template-columns:1fr}
+  .arrow{width:44px;height:44px}
+  .bigphone{max-width:calc(100vw - 130px)}
+  h1{font-size:30px}
+  .question{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){.cube{transition:none}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="brand">Roll and Tell</div>
+  <div class="crumbs" id="crumbs"></div>
+  <button class="chipbtn" id="hideNames" type="button" aria-pressed="false">Hide app names</button>
+</div>
+
+<main>
+  <section class="view on" id="start">
+    <h1>Two apps, one die</h1>
+    <p class="lead">First we look at each screen of an app, one at a time. Just tell me your first reaction. Then you see all the screens together and roll a die for a question. Then we move on to the second app.</p>
+    <div class="order">
+      <button type="button" data-first="0"><strong id="o0">Start with Clue</strong><span id="o0s">Then Midrise</span></button>
+      <button type="button" data-first="1"><strong id="o1">Start with Midrise</strong><span id="o1s">Then Clue</span></button>
+    </div>
+  </section>
+
+  <section class="view" id="tour">
+    <div class="tourhead">
+      <h2><span class="dot"></span><span class="appnm"></span></h2>
+      <span class="count" id="count"></span>
+    </div>
+    <p class="prompt">What's your first reaction to this screen?</p>
+    <div class="stage">
+      <button class="arrow" id="tprev" type="button" aria-label="Previous screen"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="bigphone"><img id="timg" alt=""></div>
+      <button class="arrow" id="tnext" type="button" aria-label="Next screen"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="tourfoot">
+      <div class="pips" id="pips"></div>
+      <button class="primary" id="toOverview" type="button">See all screens and roll the die</button>
+    </div>
+  </section>
+
+  <section class="view" id="overview">
+    <h2><span class="dot"></span><span class="appnm"></span></h2>
+    <p class="lead">Here are all the screens again. Roll the die, then point to any screen you like. Tap a screen to see it larger.</p>
+    <div class="grid" id="grid"></div>
+    <div class="diezone">
+      <div class="diecol">
+        <button class="scene" id="scene" type="button" aria-label="Roll the die"><div class="cube" id="cube"></div></button>
+        <button class="rollbtn" id="roll" type="button">Roll the die</button>
+      </div>
+      <div class="card idle" id="card" aria-live="polite">
+        <span class="tag" id="tag">Ready</span>
+        <p class="question" id="q">Tap the die to get your question.</p>
+        <div class="ladder">
+          <p>Then go one step deeper</p>
+          <ol>
+            <li>What happens when that happens? How does it feel?</li>
+            <li>Why does that matter to you?</li>
+            <li>What does it give you, or take away from you?</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+    <div class="tourfoot">
+      <button class="secondary" id="backTour" type="button">Back to the screens one by one</button>
+      <button class="primary" id="nextApp" type="button"></button>
+    </div>
+  </section>
+
+  <section class="view" id="end">
+    <h1>Thank you</h1>
+    <p class="lead">That's both apps. Is there anything we didn't talk about that feels important to you?</p>
+    <button class="secondary" id="restart" type="button">Start again</button>
+  </section>
+</main>
+
+<div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Enlarged screen">
+  <button class="arrow close" type="button" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F2A" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <button class="arrow zprev" type="button" aria-label="Previous screen"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F2A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <img alt="">
+  <button class="arrow znext" type="button" aria-label="Next screen"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F2A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+  <div class="cap"></div>
+</div>
+
+<script>
+(function(){
+  const ICONS = {
+    smile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.2c1 1.5 2.4 2.3 4 2.3s3-.8 4-2.3"/><circle cx="9" cy="9.8" r=".9" fill="currentColor"/><circle cx="15" cy="9.8" r=".9" fill="currentColor"/></svg>',
+    heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-10.2A4.1 4.1 0 0 1 12 7.4a4.1 4.1 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20z"/></svg>',
+    bin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9.5 7V4.8h5V7M6.2 7l.9 12.2h9.8L17.8 7M10 11v5M14 11v5"/></svg>',
+    cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M7.2 17.5h9.6a3.9 3.9 0 0 0 .4-7.8 5.6 5.6 0 0 0-10.7 1.1 3.4 3.4 0 0 0 .7 6.7z"/><path d="M9 20.5l-.8 1.5M13 20.5l-.8 1.5"/></svg>',
+    wrench:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M14.6 5.6a4.3 4.3 0 0 0-5.3 5.5L3.8 16.6a1.9 1.9 0 0 0 2.7 2.7l5.5-5.5a4.3 4.3 0 0 0 5.5-5.3l-2.6 2.6-2.4-.5-.5-2.4z"/></svg>',
+    wand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L15 9M13.5 7.5l3 3"/><path d="M18 3v3M16.5 4.5h3M20 10v2M19 11h2M10 3v2M9 4h2"/></svg>'
+  };
+  const FACES = [
+    {id:'smile', label:'Smile', group:'Happy', color:'#D99A1E', q:'Which of these screens makes you smile or feel good? What is it about it?'},
+    {id:'heart', label:'Heart', group:'Happy', color:'#D9486F', q:'Is there anything in this app you wouldn’t want to give up?'},
+    {id:'bin',   label:'Bin',   group:'Unhappy', color:'#5C6474', q:'What in this app would you throw in the bin?'},
+    {id:'cloud', label:'Cloud', group:'Unhappy', color:'#6E7FA8', q:'Does anything in these screens bore you, confuse you or wear you out?'},
+    {id:'wrench',label:'Wrench',group:'Idea', color:'#23877F', q:'If you could change one thing in this app, what would it be?'},
+    {id:'wand',  label:'Wand',  group:'Idea', color:'#6A52E8', q:'What’s missing from this app that would make you happy?'}
+  ];
+  const GROUPCOLOR = {Happy:'var(--pos)', Unhappy:'var(--neg)', Idea:'var(--idea)'};
+  const SIDES = ['front','right','back','left','top','bottom'];
+  const ROT = {front:[0,0], right:[0,-90], back:[0,180], left:[0,90], top:[-90,0], bottom:[90,0]};
+
+  const APPS = [
+    {name:'Clue', alias:'App A', color:'#E2574C', shots:[1,2,3,4,5,6,7,8,9].map(n => 'shots/clue-' + n + '.jpg')},
+    {name:'Midrise', alias:'App B', color:'#3E8E9E', shots:['1-community','2-symptoms','7-period-calendar','8-period-log','9-activities','3-exercises','4-affirmation','5-gratitude','6-goal'].map(n => 'shots/midrise-' + n + '.jpg')}
+  ];
+
+  let hide = false, order = [0,1], step = 0, phase = 'start', idx = 0, last = -1, spins = 0;
+  try{ hide = localStorage.getItem('rtt-hide') === '1'; }catch(e){}
+
+  const $ = id => document.getElementById(id);
+  const app = () => APPS[order[step]];
+  const nm = a => hide ? a.alias : a.name;
+
+  // build die
+  FACES.forEach((f,i) => {
+    const d = document.createElement('div');
+    d.className = 'face f-' + SIDES[i]; d.style.color = f.color;
+    d.innerHTML = ICONS[f.id] + '<span>' + f.label + '</span>';
+    $('cube').appendChild(d);
+  });
+  // preload
+  APPS.forEach(a => a.shots.forEach(s => { const i = new Image(); i.src = s; }));
+
+  function show(view){
+    phase = view;
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === view));
+    render();
+  }
+
+  function renderCrumbs(){
+    const c = $('crumbs'); c.innerHTML = '';
+    const items = [];
+    order.forEach((ai,si) => {
+      items.push({t: nm(APPS[ai]) + ': screens', on: phase==='tour' && step===si, done: step>si || (step===si && phase==='overview') || phase==='end'});
+      items.push({t: nm(APPS[ai]) + ': die', on: phase==='overview' && step===si, done: step>si || phase==='end'});
+    });
+    items.forEach(it => {
+      const s = document.createElement('span');
+      s.className = 'crumb' + (it.on ? ' on' : it.done ? ' done' : '');
+      s.textContent = it.t; c.appendChild(s);
+    });
+  }
+
+  function render(){
+    const btn = $('hideNames');
+    btn.setAttribute('aria-pressed', String(hide));
+    btn.textContent = hide ? 'Show app names' : 'Hide app names';
+    $('o0').textContent = 'Start with ' + nm(APPS[0]); $('o0s').textContent = 'Then ' + nm(APPS[1]);
+    $('o1').textContent = 'Start with ' + nm(APPS[1]); $('o1s').textContent = 'Then ' + nm(APPS[0]);
+    renderCrumbs();
+    if (phase === 'start' || phase === 'end') return;
+    const a = app();
+    document.documentElement.style.setProperty('--c', hide ? '#8A90A0' : a.color);
+    document.querySelectorAll('.appnm').forEach(e => e.textContent = nm(a));
+    if (phase === 'tour'){
+      $('timg').src = a.shots[idx]; $('timg').alt = nm(a) + ' screen ' + (idx+1);
+      $('count').textContent = 'Screen ' + (idx+1) + ' of ' + a.shots.length;
+      $('tprev').disabled = idx === 0; $('tnext').disabled = idx === a.shots.length-1;
+      $('pips').innerHTML = a.shots.map((_,i) => '<i class="' + (i<=idx ? 'on' : '') + '"></i>').join('');
+    }
+    if (phase === 'overview'){
+      const g = $('grid'); g.innerHTML = '';
+      a.shots.forEach((s,i) => {
+        const t = document.createElement('div'); t.className = 'thumb';
+        t.innerHTML = '<button type="button" aria-label="Enlarge screen ' + (i+1) + '"><img alt="' + nm(a) + ' screen ' + (i+1) + '" src="' + s + '"></button><span>Screen ' + (i+1) + '</span>';
+        t.querySelector('button').addEventListener('click', () => openZoom(i));
+        g.appendChild(t);
+      });
+      $('nextApp').textContent = step === 0 ? 'Next app: ' + nm(APPS[order[1]]) : 'Finish';
+    }
+  }
+
+  function resetDie(){
+    last = -1;
+    $('card').classList.add('idle'); $('card').style.removeProperty('--fc');
+    $('tag').textContent = 'Ready'; $('tag').style.setProperty('--tc','var(--muted)');
+    $('q').textContent = 'Tap the die to get your question.';
+  }
+
+  function roll(){
+    let i;
+    do { i = Math.floor(Math.random()*FACES.length); } while (i === last);
+    last = i;
+    const [tx,ty] = ROT[SIDES[i]];
+    spins += 2;
+    $('cube').style.transform = 'rotateX(' + (tx + 360*spins) + 'deg) rotateY(' + (ty + 360*(spins+1)) + 'deg)';
+    const f = FACES[i];
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    $('card').classList.add('idle'); $('q').textContent = 'Rolling…';
+    $('tag').textContent = '…'; $('tag').style.setProperty('--tc','var(--muted)');
+    setTimeout(() => {
+      $('card').classList.remove('idle'); $('card').style.setProperty('--fc', f.color);
+      $('tag').textContent = f.label + ' · ' + f.group; $('tag').style.setProperty('--tc', GROUPCOLOR[f.group]);
+      $('q').textContent = f.q;
+    }, reduce ? 0 : 1050);
+  }
+
+  // wiring
+  document.querySelectorAll('[data-first]').forEach(b => b.addEventListener('click', () => {
+    const f = +b.dataset.first; order = [f, 1-f]; step = 0; idx = 0; resetDie(); show('tour');
+  }));
+  $('tprev').addEventListener('click', () => { if (idx>0){ idx--; render(); } });
+  $('tnext').addEventListener('click', () => { if (idx<app().shots.length-1){ idx++; render(); } });
+  $('toOverview').addEventListener('click', () => { resetDie(); show('overview'); window.scrollTo(0,0); });
+  $('backTour').addEventListener('click', () => show('tour'));
+  $('nextApp').addEventListener('click', () => {
+    if (step === 0){ step = 1; idx = 0; resetDie(); show('tour'); } else { show('end'); }
+  });
+  $('restart').addEventListener('click', () => { step = 0; idx = 0; show('start'); });
+  $('scene').addEventListener('click', roll);
+  $('roll').addEventListener('click', roll);
+  $('hideNames').addEventListener('click', () => { hide = !hide; try{ localStorage.setItem('rtt-hide', hide ? '1' : '0'); }catch(e){} render(); });
+
+  // zoom
+  const zoom = $('zoom'), zimg = zoom.querySelector('img'), zcap = zoom.querySelector('.cap');
+  let zi = 0;
+  function openZoom(i){ zi = i; showZoom(); zoom.classList.add('open'); zoom.querySelector('.close').focus(); }
+  function showZoom(){
+    const a = app();
+    zimg.src = a.shots[zi]; zimg.alt = nm(a) + ' screen ' + (zi+1);
+    zcap.textContent = nm(a) + ' · Screen ' + (zi+1) + ' of ' + a.shots.length;
+    zoom.querySelector('.zprev').disabled = zi <= 0;
+    zoom.querySelector('.znext').disabled = zi >= a.shots.length-1;
+  }
+  const closeZoom = () => zoom.classList.remove('open');
+  zoom.querySelector('.close').addEventListener('click', closeZoom);
+  zoom.querySelector('.zprev').addEventListener('click', () => { if (zi>0){ zi--; showZoom(); } });
+  zoom.querySelector('.znext').addEventListener('click', () => { if (zi<app().shots.length-1){ zi++; showZoom(); } });
+  zoom.addEventListener('click', ev => { if (ev.target === zoom) closeZoom(); });
+
+  document.addEventListener('keydown', ev => {
+    if (zoom.classList.contains('open')){
+      if (ev.key === 'Escape') closeZoom();
+      if (ev.key === 'ArrowLeft' && zi>0){ zi--; showZoom(); }
+      if (ev.key === 'ArrowRight' && zi<app().shots.length-1){ zi++; showZoom(); }
+      return;
+    }
+    if (phase === 'tour'){
+      if (ev.key === 'ArrowLeft' && idx>0){ idx--; render(); }
+      if (ev.key === 'ArrowRight' && idx<app().shots.length-1){ idx++; render(); }
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
